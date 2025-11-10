@@ -1,15 +1,13 @@
 # KMP Plugin Template
 
 This repository is a Kotlin Multiplatform **KMP Gradle plugin template**. Use it when you want to
-build and distribute your own Gradle plugin tailored for KMP/Compose projects. We provide:
+build and distribute your own Gradle plugin tailored for KMP projects. We provide:
 
 - `plugin/` – a Gradle plugin module that currently generates a simple “hello world” Kotlin source
   file. It shows how to register a custom task, expose extension properties, and hook generated
   sources into a KMP project.
-- `sample-app/composeApp/` – a Compose Multiplatform sample that consumes the plugin, proving the
+- `sample-app` – a Compose Multiplatform sample that consumes the plugin, proving the
   generated sources are compiled for Android, desktop, and iOS.
-- `sample-app/iosApp/` – a minimal SwiftUI host plus build scripts that use the Compose framework
-  produced by Gradle.
 
 You can treat this repo as scaffolding for **your own Gradle plugin**: rename things with the
 provided script, extend the plugin logic (tasks, validations, convention plugins, etc.), and keep
