@@ -7,7 +7,7 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 
-abstract class GenerateKmpProfilesTask : DefaultTask() {
+abstract class GenerateKmpCustomTask : DefaultTask() {
 
     @get:Input
     abstract val packageName: Property<String>

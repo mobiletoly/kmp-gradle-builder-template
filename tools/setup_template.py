@@ -19,12 +19,20 @@ from pathlib import Path
 from typing import Dict, Iterable
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-OLD_PACKAGE = "dev.goquick.kmpprofiles"
-OLD_PLUGIN_ID = "dev.goquick.kmpprofiles"
-OLD_PROJECT_NAME = "kmp-profiles"
+OLD_PACKAGE = "dev.goquick.kmpgradlebuilder"
+OLD_PLUGIN_ID = "dev.goquick.kmpgradlebuilder"
+OLD_PROJECT_NAME = "kmp-gradle-builder-template"
 OLD_DEV_TEAM = "8MU5M984Q6"
-OLD_BUNDLE_ID = f"{OLD_PACKAGE}.sampleapp.SampleApp$(TEAM_ID)"
-OLD_BUNDLE_ID = f"{OLD_PACKAGE}.sampleapp.SampleApp$(TEAM_ID)"
+OLD_BUNDLE_ID = f"{OLD_PACKAGE}.sampleapp"
+OLD_ARTIFACT_ID = "kmp-gradle-builder"
+OLD_PLUGIN_CLASS = "KmpCustomPlugin"
+OLD_EXTENSION_CLASS = "KmpCustomExtension"
+OLD_GENERATE_TASK_CLASS = "GenerateKmpCustomTask"
+OLD_DSL_NAME = "kmpCustom"
+OLD_GENERATE_TASK_NAME = "generateKmpCustomSources"
+OLD_DOCTOR_TASK_NAME = "kmpCustomDoctor"
+OLD_PLUGIN_REGISTRATION = "kmpCustomPlugin"
+OLD_GENERATED_MESSAGE = "Hello from KMP Custom plugin!"
 
 TEXT_EXTENSIONS = {
     ".kt",
@@ -79,6 +87,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--project-name",
         help="Root project name (defaults to last segment of plugin id).",
+    )
+    parser.add_argument(
+        "--plugin-name",
+        default="KmpCustom",
+        help="CamelCase base name for plugin classes/DSL (defaults to KmpCustom).",
     )
     parser.add_argument(
         "--output-dir",
@@ -175,6 +188,57 @@ def replace_text(dest: Path, replacements: Dict[str, str]) -> None:
                 path.write_text(new_content)
 
 
+def apply_plugin_naming(dest: Path, plugin_name: str) -> None:
+    validated_name = validate_plugin_name(plugin_name)
+    dsl_name = lower_camel(validated_name)
+    plugin_class = f"{validated_name}Plugin"
+    extension_class = f"{validated_name}Extension"
+    task_class = f"Generate{validated_name}Task"
+    generate_task_name = f"generate{validated_name}Sources"
+    doctor_task_name = f"{dsl_name}Doctor"
+    plugin_registration = f"{dsl_name}Plugin"
+    default_message = f"Hello from {validated_name} plugin!"
+
+    replace_text(
+        dest,
+        {
+            OLD_PLUGIN_CLASS: plugin_class,
+            OLD_EXTENSION_CLASS: extension_class,
+            OLD_GENERATE_TASK_CLASS: task_class,
+            OLD_DSL_NAME: dsl_name,
+            OLD_GENERATE_TASK_NAME: generate_task_name,
+            OLD_DOCTOR_TASK_NAME: doctor_task_name,
+            OLD_PLUGIN_REGISTRATION: plugin_registration,
+            OLD_GENERATED_MESSAGE: default_message,
+        },
+    )
+
+    rename_plugin_sources(dest, OLD_PLUGIN_CLASS, plugin_class)
+    rename_plugin_sources(dest, OLD_GENERATE_TASK_CLASS, task_class)
+
+
+def rename_plugin_sources(dest: Path, old_name: str, new_name: str) -> None:
+    src_root = dest / "plugin" / "src" / "main" / "kotlin"
+    if not src_root.exists():
+        return
+    for path in src_root.rglob(f"{old_name}.kt"):
+        path.rename(path.with_name(f"{new_name}.kt"))
+
+
+def validate_plugin_name(name: str) -> str:
+    if not name:
+        sys.exit("--plugin-name must not be empty")
+    if not name[0].isalpha() or not name.replace("_", "").isalnum():
+        sys.exit("--plugin-name must start with a letter and contain only alphanumeric/underscore characters")
+    return name
+
+
+def lower_camel(name: str) -> str:
+    if len(name) == 1:
+        return name.lower()
+    return name[0].lower() + name[1:]
+
+
 def main() -> None:
     args = parse_args()
     output_dir = Path(args.output_dir).expanduser().resolve()
@@ -183,6 +247,8 @@ def main() -> None:
         sys.exit(f"Output directory {output_dir} already exists. Please provide a new path.")
 
     project_name = args.project_name or args.plugin_id.split(".")[-1]
+    artifact_id = project_name
+    plugin_name = args.plugin_name
 
     copy_template(output_dir)
     remove_metadata(output_dir)
@@ -196,9 +262,11 @@ def main() -> None:
             OLD_PACKAGE: args.package_name,
             OLD_PROJECT_NAME: project_name,
             f"DEVELOPMENT_TEAM = {OLD_DEV_TEAM};": 'DEVELOPMENT_TEAM = "";',
+            OLD_ARTIFACT_ID: artifact_id,
         },
     )
     update_project_name(output_dir, project_name)
+    apply_plugin_naming(output_dir, plugin_name)
 
     print(f"Template copied to {output_dir}")
     print("Next steps:")

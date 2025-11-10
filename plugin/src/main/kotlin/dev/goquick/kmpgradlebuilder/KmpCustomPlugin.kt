@@ -8,27 +8,27 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask
 import javax.inject.Inject
 
-abstract class KmpProfilesExtension @Inject constructor(objects: ObjectFactory) {
+abstract class KmpCustomExtension @Inject constructor(objects: ObjectFactory) {
     val packageName: Property<String> = objects.property(String::class.java)
     val className: Property<String> = objects.property(String::class.java)
     val message: Property<String> = objects.property(String::class.java)
 }
 
-class KmpProfilesPlugin : Plugin<Project> {
+class KmpCustomPlugin : Plugin<Project> {
     override fun apply(project: Project) {
-        val extension = project.extensions.create("kmpProfiles", KmpProfilesExtension::class.java).apply {
+        val extension = project.extensions.create("kmpCustom", KmpCustomExtension::class.java).apply {
             packageName.convention("dev.goquick.kmpgradlebuilder.generated")
             className.convention("GeneratedGreeting")
-            message.convention("Hello from KMP Profiles plugin!")
+            message.convention("Hello from KMP Custom plugin!")
         }
 
         val outputDir = project.layout.buildDirectory.dir("generated/src/commonMain/kotlin")
         val generateTask = project.tasks.register(
-            "generateKmpProfilesSources",
-            GenerateKmpProfilesTask::class.java
+            "generateKmpCustomSources",
+            GenerateKmpCustomTask::class.java
         ) { task ->
             task.group = "code generation"
-            task.description = "Generates shared Kotlin sources configured via the kmpProfiles extension."
+            task.description = "Generates shared Kotlin sources configured via the kmpCustom extension."
             task.packageName.set(extension.packageName)
             task.className.set(extension.className)
             task.message.set(extension.message)
@@ -46,7 +46,7 @@ class KmpProfilesPlugin : Plugin<Project> {
             }
         }
 
-        project.tasks.register("kmpProfilesDoctor") { task ->
+        project.tasks.register("kmpCustomDoctor") { task ->
             task.group = "verification"
             task.description = "Prints a short diagnostic about the current Gradle project."
             task.doLast {

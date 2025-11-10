@@ -9,10 +9,10 @@ plugins {
     id("dev.goquick.kmpgradlebuilder")
 }
 
-kmpProfiles {
+kmpCustom {
     packageName.set("dev.goquick.kmpgradlebuilder.sampleapp.generated")
     className.set("HelloFromPlugin")
-    message.set("Hello from the custom KMP Profiles plugin!")
+    message.set("Hello from the custom KMP plugin!")
 }
 
 kotlin {
